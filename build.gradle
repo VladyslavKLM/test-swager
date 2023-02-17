@@ -1,0 +1,66 @@
+import org.codehaus.groovy.runtime.GStringImpl
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.2'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id "org.openapi.generator" version "6.2.1"
+}
+
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = "17"
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springVersion = '3.0.2'
+    mapStructVersion = '1.5.3.Final'
+    openapiGenConfig = "${rootDir}/api/gen-config.yaml" as GStringImpl
+    openapiInputSpec = "${rootDir}/api/openapi.yaml" as GStringImpl
+}
+
+dependencies {
+    implementation "log4j:log4j:1.2.17"
+
+    implementation "org.springframework.boot:spring-boot-starter-validation:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
+//    implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springVersion"
+//    implementation "org.springframework.kafka:spring-kafka:$springVersion"
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.+'
+//    implementation 'org.flywaydb:flyway-core:9.10.0'
+//    runtimeOnly 'org.postgresql:postgresql:42.5.+'
+
+    compileOnly "org.projectlombok:lombok:1.18.24"
+    annotationProcessor "org.projectlombok:lombok:1.18.24"
+    implementation "org.mapstruct:mapstruct:$mapStructVersion"
+
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
+    testImplementation "org.springframework.kafka:spring-kafka-test:$springVersion"
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"
+
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
+openApiValidate {
+    inputSpec = "$openapiInputSpec"
+}
+
+openApiGenerate {
+    inputSpec = "$openapiInputSpec"
+    outputDir = "$buildDir/generated"
+    configFile = "$openapiGenConfig"
+}
+
+sourceSets.main {
+    java.srcDir("$buildDir/generated/src/main/java")
+}
+
+compileJava.dependsOn "openApiGenerate"
